@@ -1,5 +1,7 @@
 import Author from "./Author";
 import Book from "./Book";
+import BookDatabaseUtils from "./BookDatabaseUtils";
+import BookSearchUtils from "./BookSearchUtils";
 
 class BookDatabase {
     private books: Book[] = [];
@@ -9,12 +11,7 @@ class BookDatabase {
     addBook(book: Book): void {
         this.books.push(book);
 
-        // Додаємо авторів до списку авторів
-        book.authors.forEach(author => {
-            if (!this.authors.some(existingAuthor => existingAuthor.name === author.name)) {
-                this.authors.push(author);
-            }
-        });
+        BookDatabaseUtils.updateAuthorsList(this.authors, book.authors);
     }
 
     // Видалення книги
@@ -22,43 +19,50 @@ class BookDatabase {
         this.books = this.books.filter(existingBook => existingBook !== book);
     }
 
+    // Апдейт книги
     updateBook(bookToUpdate: Book, newInformation: Partial<Book>): void {
-        const index = this.books.findIndex(book => book === bookToUpdate);
+        const index = this.findIndexInBooks(bookToUpdate);
 
-        if (index !== -1) {
-            const updatedBook: Book = {
-                ...bookToUpdate,
-                ...newInformation,
-            } as Book;
-
-            this.books[index] = updatedBook;
-
-            updatedBook.authors.forEach(author => {
-                if (!this.authors.some(existingAuthor => existingAuthor.name === author.name)) {
-                    this.authors.push(author);
-                }
-            });
-
-            console.log(`Book "${bookToUpdate.title}" updated successfully.`);
-        } else {
+        if (index === -1) {
             console.error('Book not found in the database. Update failed.');
+            return;
         }
+
+        const updatedBook: Book = this.createUpdatedBook(bookToUpdate, newInformation);
+        this.updateBookInList(index, updatedBook);
+        this.updateAuthorsList(updatedBook.authors);
+
+        console.log(`Book "${bookToUpdate.title}" updated successfully.`);
     }
 
-    // Пошук книг за критеріями
-    searchBooks(criteria: string): Book[] {
-        // Логіка для пошуку книг за критеріями
+    private findIndexInBooks(book: Book): number {
+        return this.books.findIndex(existingBook => existingBook === book);
+    }
 
-        // Example: Basic linear search
-        return this.books.filter(book => {
-            // Check if the book matches the criteria
-            return (
-                book.title.toLowerCase().includes(criteria.toLowerCase()) ||
-                book.authors.some(author => author.name.toLowerCase().includes(criteria.toLowerCase())) ||
-                book.characters.some(character => character.name.toLowerCase().includes(criteria.toLowerCase()))
-            );
+    private createUpdatedBook(bookToUpdate: Book, newInformation: Partial<Book>): Book {
+        return {
+            ...bookToUpdate,
+            ...newInformation,
+        } as Book;
+    }
+
+    private updateBookInList(index: number, updatedBook: Book): void {
+        this.books[index] = updatedBook;
+    }
+
+    private updateAuthorsList(authors: Author[]): void {
+        authors.forEach(author => {
+            if (!this.authors.some(existingAuthor => existingAuthor.name === author.name)) {
+                this.authors.push(author);
+            }
         });
     }
+
+
+    static searchBooks(books: Book[], criteria: string): Book[] {
+        return BookSearchUtils.searchBooks(books, criteria)
+    }
+
 
     toString(): string {
         return `BookDatabase { books: [${this.books.join(', ')}], authors: [${this.authors.join(', ')}] }`;
