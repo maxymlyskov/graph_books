@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+      "target": "es2015",
+      "module": "commonjs",
+      "outDir": "./dist"
+    },
+    "include": ["*.ts", "graph_task1/Graph.ts", "graph_task1/Edge.ts", "graph_task1/GraphTester.ts", "graph_task1/Vertex.ts", "books_task2/Author.ts", "books_task2/Book.ts", "books_task2/BookDatabase.ts", "books_task2/BooksTester.ts", "books_task2/Character.ts"]
+  }
+  
